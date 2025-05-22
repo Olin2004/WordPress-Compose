@@ -83,7 +83,7 @@ docker-compose down
 
 ### Access / Truy cập
 
-- WordPress: [http://localhost:8084](C (mặc định) hoặc theo port trong `.env`  
+- WordPress: [http://localhost:8084](http://localhost:8084) (mặc định) hoặc theo port trong `.env`  
 - phpMyAdmin: [http://localhost:8081](http://localhost:8081) (Server: database, Username: root, Password: theo `.env`)  
 
 ---
