@@ -1,0 +1,63 @@
+services:
+  database:
+    image: mariadb:10.11
+    restart: unless-stopped
+    ports:
+      - '${DB_PORT}:3306'  # ✅ container phải là 3306 (port mặc định của MariaDB)
+    env_file: .env
+    environment:
+      MYSQL_ROOT_PASSWORD: '${MYSQL_ROOT_PASSWORD}'
+      MYSQL_DATABASE: '${MYSQL_DATABASE}'
+      MYSQL_USER: '${MYSQL_USER}'
+      MYSQL_PASSWORD: '${MYSQL_PASSWORD}'
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - wordpress-network
+    deploy:
+      resources:
+        limits:
+          memory: '${DB_MEMORY_LIMIT}'
+
+  phpmyadmin:
+    depends_on:
+      - database
+    image: phpmyadmin/phpmyadmin
+    restart: unless-stopped
+    ports:
+      - '${PHPMYADMIN_PORT}:80'  # ✅ đúng: phpMyAdmin lắng nghe ở 80
+    env_file: .env
+    environment:
+      PMA_HOST: database
+      MYSQL_ROOT_PASSWORD: '${MYSQL_ROOT_PASSWORD}'
+      UPLOAD_LIMIT: '${PMA_UPLOAD_LIMIT}'
+      MAX_EXECUTION_TIME: '${PMA_MAX_EXECUTION_TIME}'
+    networks:
+      - wordpress-network
+
+  wordpress:
+    depends_on:
+      - database
+    image: wordpress:6.5
+    restart: unless-stopped
+    ports:
+      - '${WORDPRESS_PORT}:80'  # ✅ đúng: WordPress lắng nghe ở 80
+    env_file: .env
+    environment:
+      WORDPRESS_DB_HOST: database:3306  # ✅ đúng port MariaDB trong container
+      WORDPRESS_DB_NAME: '${MYSQL_DATABASE}'
+      WORDPRESS_DB_USER: '${MYSQL_USER}'
+      WORDPRESS_DB_PASSWORD: '${MYSQL_PASSWORD}'
+    volumes:
+      - ./wordpress:/var/www/html
+      - ./uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+      - ./php.ini:/usr/local/etc/php/php.ini
+    networks:
+      - wordpress-network
+
+volumes:
+  db-data:
+
+networks:
+  wordpress-network:
+    driver: bridge
